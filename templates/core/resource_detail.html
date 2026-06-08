@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ resource.title }} — ExamFind{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 900px;">
+  <!-- Back -->
+  <a href="javascript:history.back()" class="btn btn-sm mb-4" style="background: var(--surface); color: var(--text-muted); border: 1px solid var(--border);">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <!-- Title & Badges -->
+      <div class="mb-4">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+          <span class="badge rounded-pill" style="background: var(--primary);">{{ resource.category.name }}</span>
+          <span class="badge rounded-pill badge-difficulty-{{ resource.difficulty|lower }}">{{ resource.get_difficulty_display }}</span>
+          <span class="badge rounded-pill" style="background: var(--surface); color: var(--text-muted); border: 1px solid var(--border);">{{ resource.get_exam_type_display }}</span>
+          {% if resource.subject %}
+          <span class="badge rounded-pill" style="background: var(--surface); color: var(--primary-light); border: 1px solid var(--border);">{{ resource.subject }}</span>
+          {% endif %}
+        </div>
+        <h1 style="font-size: 1.75rem; font-weight: 700; line-height: 1.3;">{{ resource.title }}</h1>
+        <p style="color: var(--text-muted);">
+          <i class="bi bi-globe2 me-1"></i>
+          <strong style="color: var(--text-primary);">{{ resource.source_name }}</strong>
+          <a href="{{ resource.url }}" target="_blank" class="ms-2" style="color: var(--primary-light); font-size: 0.875rem;">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Visit Source
+          </a>
+        </p>
+      </div>
+
+      <!-- Description -->
+      <div class="card p-4 mb-4">
+        <h5 class="mb-3" style="color: var(--primary-light);">About this resource</h5>
+        <p style="color: var(--text-primary); line-height: 1.7;">{{ resource.description }}</p>
+      </div>
+
+      <!-- Go to Test Button -->
+      <a href="{{ resource.url }}" target="_blank" class="btn btn-accent btn-lg w-100 mb-4" style="font-size: 1.1rem;">
+        <i class="bi bi-box-arrow-up-right me-2"></i>Go to Test →
+      </a>
+    </div>
+
+    <!-- Sidebar: Save & Notes -->
+    <div class="col-lg-4">
+      <div class="card p-4 mb-3">
+        <h6 class="mb-3" style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          <i class="bi bi-bookmark me-1"></i>Save & Track
+        </h6>
+
+        {% if user.is_authenticated %}
+          <button id="saveBtn" class="btn w-100 mb-3 {% if saved_resource %}btn-accent{% else %}btn-outline-primary{% endif %}"
+                  onclick="toggleSave({{ resource.pk }})">
+            <i class="bi bi-{% if saved_resource %}bookmark-fill{% else %}bookmark{% endif %} me-2"></i>
+            <span id="saveBtnText">{% if saved_resource %}Saved{% else %}Save Test{% endif %}</span>
+          </button>
+
+          {% if saved_resource %}
+          <div id="notesSection">
+            <!-- Complete toggle -->
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" id="completeToggle"
+                     {% if saved_resource.is_completed %}checked{% endif %}
+                     onchange="toggleComplete({{ saved_resource.pk }})">
+              <label class="form-check-label" for="completeToggle" style="color: var(--text-primary);">
+                Mark as Completed
+              </label>
+            </div>
+
+            <!-- Notes -->
+            <label class="form-label" style="color: var(--text-muted); font-size: 0.85rem;">Personal Notes</label>
+            <textarea id="notesInput" class="form-control form-control-sm mb-1" rows="4"
+                      placeholder="Add your notes here..."
+                      onblur="saveNotes({{ saved_resource.pk }})">{{ saved_resource.notes }}</textarea>
+            <small style="color: var(--text-muted);" id="notesSaved"></small>
+          </div>
+          {% endif %}
+        {% else %}
+          <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary w-100">
+            <i class="bi bi-person me-2"></i>Login to Save
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Resource Meta -->
+      <div class="card p-3">
+        <h6 class="mb-3" style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Details</h6>
+        <table class="table table-sm" style="color: var(--text-muted); font-size: 0.85rem; --bs-table-bg: transparent; --bs-table-color: var(--text-muted);">
+          <tr>
+            <td>Category</td>
+            <td style="color: var(--text-primary);">{{ resource.category.name }}</td>
+          </tr>
+          <tr>
+            <td>Subject</td>
+            <td style="color: var(--text-primary);">{{ resource.subject }}</td>
+          </tr>
+          <tr>
+            <td>Type</td>
+            <td style="color: var(--text-primary);">{{ resource.get_exam_type_display }}</td>
+          </tr>
+          <tr>
+            <td>Difficulty</td>
+            <td style="color: var(--text-primary);">{{ resource.get_difficulty_display }}</td>
+          </tr>
+          <tr>
+            <td>Free</td>
+            <td style="color: var(--success);">{% if resource.is_free %}<i class="bi bi-check-circle-fill"></i> Yes{% else %}No{% endif %}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Resources -->
+  {% if related %}
+  <div class="mt-5">
+    <h4 class="section-title">More {{ resource.category.name }} Resources</h4>
+    <div class="row g-3">
+      {% for r in related %}
+      <div class="col-md-4">
+        <div class="card resource-card p-3 h-100">
+          <div class="d-flex gap-2 mb-2 flex-wrap">
+            <span class="badge rounded-pill badge-difficulty-{{ r.difficulty|lower }}" style="font-size: 0.7rem;">{{ r.get_difficulty_display }}</span>
+            <span class="badge rounded-pill" style="background: var(--surface); color: var(--text-muted); font-size: 0.7rem; border: 1px solid var(--border);">{{ r.get_exam_type_display }}</span>
+          </div>
+          <h6 class="mb-1">
+            <a href="{% url 'resource_detail' r.pk %}" style="color: var(--text-primary); text-decoration: none;">
+              {{ r.title|truncatechars:55 }}
+            </a>
+          </h6>
+          <p style="color: var(--text-muted); font-size: 0.8rem;" class="mb-0">{{ r.source_name }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let c of cookies) {
+      const ck = c.trim();
+      if (ck.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(ck.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function toggleSave(pk) {
+  fetch(`/save/${pk}/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken')},
+  })
+  .then(r => r.json())
+  .then(data => {
+    const btn = document.getElementById('saveBtn');
+    const txt = document.getElementById('saveBtnText');
+    const icon = btn.querySelector('i');
+    if (data.saved) {
+      btn.className = 'btn w-100 mb-3 btn-accent';
+      icon.className = 'bi bi-bookmark-fill me-2';
+      txt.textContent = 'Saved';
+      // Reload to show notes section
+      location.reload();
+    } else {
+      btn.className = 'btn w-100 mb-3 btn-outline-primary';
+      icon.className = 'bi bi-bookmark me-2';
+      txt.textContent = 'Save Test';
+      const ns = document.getElementById('notesSection');
+      if (ns) ns.remove();
+    }
+  });
+}
+
+function toggleComplete(savedPk) {
+  fetch(`/complete/${savedPk}/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken')},
+  })
+  .then(r => r.json());
+}
+
+function saveNotes(savedPk) {
+  const notes = document.getElementById('notesInput').value;
+  const statusEl = document.getElementById('notesSaved');
+  const formData = new FormData();
+  formData.append('notes', notes);
+  fetch(`/notes/${savedPk}/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken')},
+    body: formData,
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      statusEl.textContent = 'Saved';
+      statusEl.style.color = 'var(--success)';
+      setTimeout(() => { statusEl.textContent = ''; }, 2000);
+    }
+  });
+}
+</script>
+{% endblock %}

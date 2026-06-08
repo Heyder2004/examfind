@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Login — ExamFind{% endblock %}
+
+{% block content %}
+<div class="container py-5 d-flex justify-content-center">
+  <div style="width: 100%; max-width: 440px;">
+    <div class="card p-5">
+      <div class="text-center mb-4">
+        <div style="font-size: 2.5rem; color: var(--primary-light);"><i class="bi bi-mortarboard-fill"></i></div>
+        <h3 class="mt-2">Welcome back</h3>
+        <p style="color: var(--text-muted);">Sign in to your ExamFind account</p>
+      </div>
+
+      {% if form.errors %}
+      <div class="alert alert-danger py-2 mb-3" style="font-size: 0.875rem;">
+        Invalid username or password. Please try again.
+      </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label" style="color: var(--text-muted); font-size: 0.875rem;">Username</label>
+          <input type="text" name="username" class="form-control" autofocus required>
+        </div>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <label class="form-label" style="color: var(--text-muted); font-size: 0.875rem;">Password</label>
+            <a href="{% url 'password_reset' %}" style="color: var(--primary-light); font-size: 0.8rem;">Forgot password?</a>
+          </div>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+
+        {% if next %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary w-100 mt-2 py-2">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </button>
+      </form>
+
+      <hr style="border-color: var(--border); margin: 1.5rem 0;">
+      <p class="text-center mb-0" style="color: var(--text-muted); font-size: 0.875rem;">
+        Don't have an account?
+        <a href="{% url 'register' %}" style="color: var(--primary-light); font-weight: 500;">Create one free</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

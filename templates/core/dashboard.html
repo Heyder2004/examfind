@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — ExamFind{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Welcome -->
+  <div class="mb-5">
+    <h2 style="font-size: 1.9rem; font-weight: 700;">
+      Welcome back, <span style="color: var(--primary-light);">{{ user.first_name|default:user.username }}</span>!
+    </h2>
+    <p style="color: var(--text-muted);">Here's your study progress at a glance.</p>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="card p-4">
+        <div class="d-flex align-items-center gap-3">
+          <div style="font-size: 2.5rem; color: var(--primary-light);"><i class="bi bi-bookmark-fill"></i></div>
+          <div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary);">{{ saved_count }}</div>
+            <div style="color: var(--text-muted);">Saved Tests</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-4">
+        <div class="d-flex align-items-center gap-3">
+          <div style="font-size: 2.5rem; color: var(--success);"><i class="bi bi-check-circle-fill"></i></div>
+          <div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary);">{{ completed_count }}</div>
+            <div style="color: var(--text-muted);">Completed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-4">
+        <div class="d-flex align-items-center gap-3">
+          <div style="font-size: 2.5rem; color: var(--accent);"><i class="bi bi-trophy-fill"></i></div>
+          <div>
+            <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary);">
+              {{ profile.target_exam.name|default:"Not set" }}
+            </div>
+            <div style="color: var(--text-muted);">Target Exam</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Quick Search -->
+    <div class="col-lg-6">
+      <div class="card p-4">
+        <h5 class="mb-3"><i class="bi bi-search me-2" style="color: var(--primary-light);"></i>Quick Search</h5>
+        <form action="{% url 'search' %}" method="get">
+          <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search for a practice test...">
+            <button class="btn btn-primary" type="submit">Search</button>
+          </div>
+        </form>
+        <div class="mt-3 d-flex gap-2 flex-wrap">
+          <a href="{% url 'search' %}?q=SAT" class="btn btn-sm btn-outline-primary">SAT</a>
+          <a href="{% url 'search' %}?q=IELTS" class="btn btn-sm btn-outline-primary">IELTS</a>
+          <a href="{% url 'search' %}?q=GRE" class="btn btn-sm btn-outline-primary">GRE</a>
+          <a href="{% url 'search' %}?q=YKS" class="btn btn-sm btn-outline-primary">YKS</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="col-lg-6">
+      <div class="card p-4">
+        <h5 class="mb-3"><i class="bi bi-lightning me-2" style="color: var(--accent);"></i>Quick Links</h5>
+        <div class="d-flex flex-column gap-2">
+          <a href="{% url 'saved_tests' %}" class="btn btn-outline-primary text-start">
+            <i class="bi bi-bookmark me-2"></i>View Saved Tests ({{ saved_count }})
+          </a>
+          <a href="{% url 'profile_edit' %}" class="btn text-start" style="background: var(--surface); color: var(--text-primary); border: 1px solid var(--border);">
+            <i class="bi bi-pencil me-2"></i>Edit Profile
+          </a>
+          <a href="{% url 'home' %}" class="btn text-start" style="background: var(--surface); color: var(--text-primary); border: 1px solid var(--border);">
+            <i class="bi bi-house me-2"></i>Browse All Resources
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Searches -->
+  <div class="mt-4">
+    <div class="card p-4">
+      <h5 class="mb-3"><i class="bi bi-clock-history me-2" style="color: var(--primary-light);"></i>Recent Searches</h5>
+      {% if recent_searches %}
+      <div class="table-responsive">
+        <table class="table table-sm" style="--bs-table-bg: transparent; --bs-table-color: var(--text-primary); --bs-table-border-color: var(--border);">
+          <thead style="color: var(--text-muted); font-size: 0.8rem;">
+            <tr>
+              <th>Query</th>
+              <th>Results</th>
+              <th>When</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in recent_searches %}
+            <tr>
+              <td style="color: var(--text-primary);">{{ log.query }}</td>
+              <td><span class="badge" style="background: var(--primary);">{{ log.results_count }}</span></td>
+              <td style="color: var(--text-muted); font-size: 0.85rem;">{{ log.searched_at|timesince }} ago</td>
+              <td>
+                <a href="{% url 'search' %}?q={{ log.query|urlencode }}" class="btn btn-sm" style="background: var(--surface); color: var(--primary-light); border: 1px solid var(--border); font-size: 0.75rem;">
+                  <i class="bi bi-arrow-repeat"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p style="color: var(--text-muted);">No searches yet. <a href="{% url 'home' %}" style="color: var(--primary-light);">Start searching</a>.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

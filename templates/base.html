@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ExamFind — AI-Powered Exam Resource Finder{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2D6A4F;
+      --primary-light: #52B788;
+      --primary-hover: #1B4332;
+      --accent: #F4A261;
+      --accent-hover: #E76F51;
+      --dark-bg: #0D1117;
+      --surface: #161B22;
+      --card-bg: #21262D;
+      --border: rgba(255,255,255,0.08);
+      --text-primary: #E6EDF3;
+      --text-muted: #8B949E;
+      --success: #2EA043;
+      --danger: #DA3633;
+      --radius: 12px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background: var(--dark-bg);
+      color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Sora', sans-serif;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    .btn-primary:hover, .btn-primary:focus {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+      color: #fff;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0D1117;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    .btn-accent:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: #0D1117;
+    }
+
+    .btn-outline-primary {
+      border-color: var(--primary-light);
+      color: var(--primary-light);
+      border-radius: 8px;
+    }
+    .btn-outline-primary:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+      transition: all 0.2s ease;
+    }
+
+    .form-control, .form-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 8px;
+    }
+    .form-control:focus, .form-select:focus {
+      background: var(--surface);
+      border-color: var(--primary-light);
+      color: var(--text-primary);
+      box-shadow: 0 0 0 0.2rem rgba(82,183,136,0.25);
+    }
+    .form-control::placeholder { color: var(--text-muted); }
+
+    /* Navbar */
+    .navbar {
+      background: var(--surface) !important;
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+    }
+    .navbar-brand {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--primary-light) !important;
+      text-decoration: none;
+    }
+    .navbar-brand:hover { color: var(--accent) !important; }
+
+    .nav-link {
+      color: var(--text-muted) !important;
+      font-weight: 500;
+    }
+    .nav-link:hover { color: var(--text-primary) !important; }
+
+    .navbar-toggler {
+      border-color: var(--border);
+    }
+    .navbar-toggler-icon {
+      filter: invert(1);
+    }
+
+    .nav-search-form .form-control {
+      min-width: 280px;
+      font-size: 0.9rem;
+    }
+
+    /* Badges */
+    .badge-difficulty-easy { background: var(--success); color: #fff; }
+    .badge-difficulty-medium { background: var(--accent); color: #0D1117; }
+    .badge-difficulty-hard { background: var(--danger); color: #fff; }
+
+    /* Footer */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--primary-light); }
+    footer h6 { color: var(--text-primary); font-family: 'Sora', sans-serif; }
+
+    /* Alerts */
+    .alert {
+      border-radius: var(--radius);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--dark-bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* Dropdown */
+    .dropdown-menu {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .dropdown-item {
+      color: var(--text-primary);
+    }
+    .dropdown-item:hover {
+      background: var(--surface);
+      color: var(--primary-light);
+    }
+    .dropdown-divider { border-color: var(--border); }
+
+    .text-muted { color: var(--text-muted) !important; }
+
+    .section-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .resource-card {
+      transition: all 0.2s ease;
+      height: 100%;
+    }
+    .resource-card:hover {
+      border-color: var(--primary-light) !important;
+      box-shadow: 0 4px 20px rgba(82,183,136,0.15);
+    }
+
+    .save-btn.saved i { color: var(--accent); }
+
+    .progress {
+      background: var(--surface);
+      border-radius: 8px;
+    }
+    .progress-bar {
+      background: var(--primary-light);
+    }
+
+    main { flex: 1; }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'home' %}">
+      <i class="bi bi-mortarboard-fill me-2"></i>ExamFind
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <!-- Center search -->
+      <form class="d-none d-lg-flex mx-auto nav-search-form" action="{% url 'search' %}" method="get">
+        <div class="input-group">
+          <input type="text" name="q" class="form-control" placeholder="Search exams, topics..." value="{{ request.GET.q|default:'' }}">
+          <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+        </div>
+      </form>
+
+      <!-- Right links -->
+      <ul class="navbar-nav ms-auto align-items-center gap-1">
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'saved_tests' %}"><i class="bi bi-bookmark me-1"></i>Saved</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle me-1"></i>{{ user.get_short_name|default:user.username }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{% url 'profile_edit' %}"><i class="bi bi-pencil me-2"></i>Edit Profile</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="dropdown-item text-danger">
+                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                  </button>
+                </form>
+              </li>
+            </ul>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="btn btn-outline-primary btn-sm me-1" href="{% url 'login' %}">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-primary btn-sm" href="{% url 'register' %}">Register</a>
+          </li>
+        {% endif %}
+      </ul>
+
+      <!-- Mobile search -->
+      <form class="d-lg-none mt-2" action="{% url 'search' %}" method="get">
+        <div class="input-group">
+          <input type="text" name="q" class="form-control" placeholder="Search..." value="{{ request.GET.q|default:'' }}">
+          <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+        </div>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<!-- Flash Messages -->
+{% if messages %}
+<div class="container mt-3">
+  {% for message in messages %}
+  <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="py-4 mt-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-3">
+        <h6 class="mb-2"><i class="bi bi-mortarboard-fill me-2 text-success"></i>ExamFind</h6>
+        <p class="small">AI-powered search for free exam resources. 100% free to use.</p>
+      </div>
+      <div class="col-lg-3">
+        <h6 class="mb-2">International</h6>
+        <ul class="list-unstyled small">
+          <li><a href="{% url 'search' %}?q=SAT">SAT</a></li>
+          <li><a href="{% url 'search' %}?q=IELTS">IELTS</a></li>
+          <li><a href="{% url 'search' %}?q=TOEFL">TOEFL</a></li>
+          <li><a href="{% url 'search' %}?q=GRE">GRE</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3">
+        <h6 class="mb-2">Turkey</h6>
+        <ul class="list-unstyled small">
+          <li><a href="{% url 'search' %}?q=YKS">YKS</a></li>
+          <li><a href="{% url 'search' %}?q=TYT">TYT</a></li>
+          <li><a href="{% url 'search' %}?q=KPSS">KPSS</a></li>
+          <li><a href="{% url 'search' %}?q=ALES">ALES</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3">
+        <h6 class="mb-2">Account</h6>
+        <ul class="list-unstyled small">
+          {% if user.is_authenticated %}
+          <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+          <li><a href="{% url 'saved_tests' %}">Saved Tests</a></li>
+          {% else %}
+          <li><a href="{% url 'login' %}">Login</a></li>
+          <li><a href="{% url 'register' %}">Register</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+    <hr style="border-color: var(--border);">
+    <p class="small text-center mb-0">&copy; 2024 ExamFind — AI-Powered Exam Resource Finder. All resources are free.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Register — ExamFind{% endblock %}
+
+{% block content %}
+<div class="container py-5 d-flex justify-content-center">
+  <div style="width: 100%; max-width: 540px;">
+    <div class="card p-5">
+      <div class="text-center mb-4">
+        <div style="font-size: 2.5rem; color: var(--primary-light);"><i class="bi bi-person-plus-fill"></i></div>
+        <h3 class="mt-2">Create your account</h3>
+        <p style="color: var(--text-muted);">Free forever — no credit card required</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label" style="color: var(--text-muted); font-size: 0.875rem;">First Name</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+            <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.first_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="col-6">
+            <label class="form-label" style="color: var(--text-muted); font-size: 0.875rem;">Last Name</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+            <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.last_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mb-3 mt-3">
+          <label class="form-label" style="color: var(--text-muted); font-size: 0.875rem;">Username</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+          <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.username.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" style="color: var(--text-muted); font-size: 0.875rem;">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+          <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.email.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" style="color: var(--text-muted); font-size: 0.875rem;">Password</label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}
+          <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.password1.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label" style="color: var(--text-muted); font-size: 0.875rem;">Confirm Password</label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}
+          <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.password2.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2">
+          <i class="bi bi-person-check me-2"></i>Create Account
+        </button>
+      </form>
+
+      <hr style="border-color: var(--border); margin: 1.5rem 0;">
+      <p class="text-center mb-0" style="color: var(--text-muted); font-size: 0.875rem;">
+        Already have an account?
+        <a href="{% url 'login' %}" style="color: var(--primary-light); font-weight: 500;">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Apply dark styling to form fields rendered by Django
+document.querySelectorAll('input[type=text], input[type=email], input[type=password]').forEach(el => {
+  el.className = 'form-control';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Saved Tests — ExamFind{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0">Saved Tests</h2>
+    <a href="{% url 'home' %}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-plus me-1"></i>Find More Tests
+    </a>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary-light);">{{ total }}</div>
+        <div style="color: var(--text-muted); font-size: 0.85rem;">Total Saved</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div style="font-size: 1.8rem; font-weight: 700; color: var(--success);">{{ completed }}</div>
+        <div style="color: var(--text-muted); font-size: 0.85rem;">Completed</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent);">{{ total|add:"-"|add:completed }}</div>
+        <div style="color: var(--text-muted); font-size: 0.85rem;">In Progress</div>
+      </div>
+    </div>
+    {% if total > 0 %}
+    <div class="col-12 col-md-3">
+      <div class="card p-3">
+        <div class="d-flex justify-content-between mb-1">
+          <small style="color: var(--text-muted);">Progress</small>
+          <small style="color: var(--text-primary);">{% widthratio completed total 100 %}%</small>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar" role="progressbar" style="width: {% widthratio completed total 100 %}%;"></div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if saved_resources %}
+  <div class="row g-4">
+    {% for saved in saved_resources %}
+    <div class="col-md-6" id="saved-item-{{ saved.pk }}">
+      <div class="card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+          <div class="d-flex gap-2 flex-wrap">
+            <span class="badge rounded-pill" style="background: var(--primary); font-size: 0.7rem;">{{ saved.resource.category.name }}</span>
+            <span class="badge rounded-pill badge-difficulty-{{ saved.resource.difficulty|lower }}" style="font-size: 0.7rem;">{{ saved.resource.get_difficulty_display }}</span>
+          </div>
+          <!-- Remove button -->
+          <button class="btn btn-sm" style="background: transparent; color: var(--text-muted); border: none; padding: 0;"
+                  onclick="removeSaved({{ saved.resource.pk }}, {{ saved.pk }})" title="Remove">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <h6 class="mb-1">
+          <a href="{% url 'resource_detail' saved.resource.pk %}" style="color: var(--text-primary); text-decoration: none;">
+            {{ saved.resource.title }}
+          </a>
+        </h6>
+
+        <p style="color: var(--text-muted); font-size: 0.8rem;" class="mb-3">{{ saved.resource.source_name }}</p>
+
+        <!-- Complete toggle -->
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="complete-{{ saved.pk }}"
+                 {% if saved.is_completed %}checked{% endif %}
+                 onchange="toggleComplete({{ saved.pk }}, this)">
+          <label class="form-check-label" for="complete-{{ saved.pk }}" style="color: var(--text-primary); font-size: 0.875rem;">
+            {% if saved.is_completed %}Completed{% else %}Mark as completed{% endif %}
+          </label>
+        </div>
+
+        <!-- Notes -->
+        <textarea class="form-control form-control-sm mb-1" rows="2"
+                  placeholder="Add notes..."
+                  data-saved-pk="{{ saved.pk }}"
+                  onblur="saveNotes(this)">{{ saved.notes }}</textarea>
+        <small class="notes-status" style="color: var(--text-muted); font-size: 0.75rem;"></small>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- Empty State -->
+  <div class="text-center py-5">
+    <div style="font-size: 4rem; opacity: 0.3; margin-bottom: 1rem;"><i class="bi bi-bookmark"></i></div>
+    <h4 style="color: var(--text-muted);">No saved tests yet</h4>
+    <p style="color: var(--text-muted);" class="mb-4">Search for exam resources and save the ones you want to practice.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">Find Practice Tests</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let c of cookies) {
+      const ck = c.trim();
+      if (ck.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(ck.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function toggleComplete(savedPk, checkbox) {
+  const label = checkbox.nextElementSibling;
+  fetch(`/complete/${savedPk}/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken')},
+  })
+  .then(r => r.json())
+  .then(data => {
+    label.textContent = data.completed ? 'Completed' : 'Mark as completed';
+  });
+}
+
+function saveNotes(textarea) {
+  const savedPk = textarea.dataset.savedPk;
+  const notes = textarea.value;
+  const status = textarea.nextElementSibling;
+  const formData = new FormData();
+  formData.append('notes', notes);
+  fetch(`/notes/${savedPk}/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken')},
+    body: formData,
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      status.textContent = 'Saved';
+      status.style.color = 'var(--success)';
+      setTimeout(() => { status.textContent = ''; }, 2000);
+    }
+  });
+}
+
+function removeSaved(resourcePk, savedPk) {
+  fetch(`/save/${resourcePk}/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken')},
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.saved) {
+      const item = document.getElementById(`saved-item-${savedPk}`);
+      if (item) item.remove();
+    }
+  });
+}
+</script>
+{% endblock %}
