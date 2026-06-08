@@ -1,0 +1,1 @@
+web: gunicorn examfind.wsgi --log-file -
