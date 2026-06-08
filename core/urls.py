@@ -7,6 +7,7 @@ urlpatterns = [
     path('resource/<int:pk>/', views.resource_detail, name='resource_detail'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('saved/', views.saved_tests, name='saved_tests'),
+    path('save/', views.save_resource, name='save_resource_new'),  # for live results
     path('save/<int:pk>/', views.save_resource, name='save_resource'),
     path('complete/<int:pk>/', views.toggle_complete, name='toggle_complete'),
     path('notes/<int:pk>/', views.update_notes, name='update_notes'),

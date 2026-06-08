@@ -4,62 +4,85 @@
 
 {% block content %}
 <div class="container py-5">
-  <!-- Header -->
+
+  <!-- Search Header -->
   <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
-    <div>
-      <h2 class="mb-1" style="font-size: 1.6rem;">
-        Results for "<span style="color: var(--primary-light);">{{ query }}</span>"
-      </h2>
-      <p class="mb-0" style="color: var(--text-muted);">
-        {{ results|length }} result{{ results|length|pluralize }} found
-        <span class="badge ms-2 px-2 py-1" style="background: var(--primary); font-size: 0.75rem;">
-          <i class="bi bi-lightning-fill me-1"></i>Powered by AI
-        </span>
-      </p>
-    </div>
+    <h2 class="mb-0" style="font-family: 'Sora', sans-serif; color: var(--text-primary);">
+      Results for "<span style="color: var(--primary-light);">{{ query }}</span>"
+    </h2>
+    <span class="badge" style="background: var(--primary); font-size: 0.75rem; padding: 6px 12px;">
+      ⚡ Live AI Search
+    </span>
+    <span class="badge" style="background: var(--card-bg); color: var(--text-muted); font-size: 0.75rem; padding: 6px 12px; border: 1px solid var(--border);">
+      {{ results_count }} results
+    </span>
   </div>
 
-  {% if results %}
+  {% if not query %}
+  <!-- No query -->
+  <div class="text-center py-5">
+    <div style="font-size: 3rem;">🔍</div>
+    <h4 style="color: var(--text-primary);">Type something to search</h4>
+    <p style="color: var(--text-muted);">Try: "SAT math practice" or "IELTS reading Cambridge"</p>
+  </div>
+
+  {% elif results %}
+  <!-- Results Grid -->
   <div class="row g-4">
-    {% for resource in results %}
-    <div class="col-md-6">
-      <div class="card resource-card p-4 h-100">
-        <div class="d-flex gap-2 mb-2 flex-wrap">
-          <span class="badge rounded-pill" style="background: var(--primary); font-size: 0.7rem;">{{ resource.category.name }}</span>
-          <span class="badge rounded-pill badge-difficulty-{{ resource.difficulty|lower }}" style="font-size: 0.7rem;">{{ resource.get_difficulty_display }}</span>
-          <span class="badge rounded-pill" style="background: var(--surface); color: var(--text-muted); font-size: 0.7rem; border: 1px solid var(--border);">{{ resource.get_exam_type_display }}</span>
-        </div>
+    {% for result in results %}
+    <div class="col-12 col-md-6">
+      <div class="card h-100" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);">
+        <div class="card-body d-flex flex-column p-4">
 
-        <h5 class="mb-1">
-          <a href="{% url 'resource_detail' resource.pk %}" style="color: var(--text-primary); text-decoration: none;">
-            {{ resource.title }}
-          </a>
-        </h5>
+          <!-- Badges -->
+          <div class="d-flex gap-2 mb-2 flex-wrap">
+            {% if result.is_trusted %}
+            <span class="badge" style="background: var(--primary); font-size: 0.65rem;">✓ Trusted Source</span>
+            {% endif %}
+            <span class="badge" style="background: var(--card-bg); color: var(--text-muted); font-size: 0.65rem; border: 1px solid var(--border);">
+              {{ result.source }}
+            </span>
+          </div>
 
-        <p style="color: var(--text-muted); font-size: 0.875rem;" class="mb-3">
-          {{ resource.description|truncatechars:120 }}
-        </p>
+          <!-- Title -->
+          <h5 class="mb-2" style="color: var(--text-primary); font-family: 'Sora', sans-serif; font-size: 1rem; line-height: 1.4;">
+            {{ result.title }}
+          </h5>
 
-        <div class="d-flex align-items-center justify-content-between mt-auto flex-wrap gap-2">
-          <small style="color: var(--text-muted);">
-            <i class="bi bi-globe2 me-1"></i>{{ resource.source_name }}
-            <a href="{{ resource.url }}" target="_blank" class="ms-1" style="color: var(--primary-light);">
-              <i class="bi bi-box-arrow-up-right"></i>
-            </a>
-          </small>
+          <!-- Description -->
+          <p class="mb-3 flex-grow-1" style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.5;">
+            {% if result.description %}
+              {{ result.description|truncatechars:150 }}
+            {% else %}
+              Click to visit this resource.
+            {% endif %}
+          </p>
+
+          <!-- URL preview -->
+          <p class="mb-3" style="color: var(--primary-light); font-size: 0.75rem; word-break: break-all;">
+            🔗 {{ result.url|truncatechars:60 }}
+          </p>
+
+          <!-- Actions -->
           <div class="d-flex gap-2">
-            <a href="{% url 'resource_detail' resource.pk %}" class="btn btn-sm btn-primary">
-              View Details
+            <a href="{{ result.url }}" target="_blank" rel="noopener noreferrer"
+               class="btn flex-grow-1"
+               style="background: var(--accent); color: #0D1117; font-weight: 600; border-radius: 8px;">
+              Go to Test →
             </a>
             {% if user.is_authenticated %}
-            <button class="btn btn-sm save-btn {% if resource.id in saved_ids %}saved{% endif %}"
-                    style="background: var(--card-bg); border: 1px solid var(--border); color: {% if resource.id in saved_ids %}var(--accent){% else %}var(--text-muted){% endif %};"
-                    data-pk="{{ resource.pk }}"
-                    onclick="toggleSave(this, {{ resource.pk }})">
-              <i class="bi bi-{% if resource.id in saved_ids %}heart-fill{% else %}heart{% endif %}"></i>
+            <button class="btn save-btn"
+                    data-url="{{ result.url }}"
+                    data-title="{{ result.title|escapejs }}"
+                    data-description="{{ result.description|escapejs|truncatechars:500 }}"
+                    data-source="{{ result.source }}"
+                    style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; padding: 8px 12px;"
+                    title="Save this resource">
+              🤍
             </button>
             {% endif %}
           </div>
+
         </div>
       </div>
     </div>
@@ -67,63 +90,58 @@
   </div>
 
   {% else %}
-  <!-- Empty State -->
+  <!-- No results -->
   <div class="text-center py-5">
-    <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.4;">
-      <i class="bi bi-search"></i>
-    </div>
-    <h4 style="color: var(--text-muted);">No results found for "{{ query }}"</h4>
-    <p style="color: var(--text-muted);" class="mb-4">Try different keywords or browse by category below.</p>
-    <div class="d-flex gap-2 justify-content-center flex-wrap">
-      <a href="{% url 'search' %}?q=SAT" class="btn btn-outline-primary btn-sm">SAT</a>
-      <a href="{% url 'search' %}?q=IELTS" class="btn btn-outline-primary btn-sm">IELTS</a>
-      <a href="{% url 'search' %}?q=YKS" class="btn btn-outline-primary btn-sm">YKS</a>
-      <a href="{% url 'search' %}?q=GRE" class="btn btn-outline-primary btn-sm">GRE</a>
-      <a href="{% url 'search' %}?q=TOEFL" class="btn btn-outline-primary btn-sm">TOEFL</a>
+    <div style="font-size: 3rem;">😕</div>
+    <h4 style="color: var(--text-primary);">No results found</h4>
+    <p style="color: var(--text-muted);">Try a different search. Examples:</p>
+    <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
+      <a href="{% url 'search' %}?q=SAT+math+practice" class="btn btn-sm" style="background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border); border-radius: 20px;">SAT math practice</a>
+      <a href="{% url 'search' %}?q=IELTS+reading" class="btn btn-sm" style="background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border); border-radius: 20px;">IELTS reading</a>
+      <a href="{% url 'search' %}?q=GRE+verbal" class="btn btn-sm" style="background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border); border-radius: 20px;">GRE verbal</a>
+      <a href="{% url 'search' %}?q=YKS+TYT+deneme" class="btn btn-sm" style="background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border); border-radius: 20px;">YKS TYT deneme</a>
+      <a href="{% url 'search' %}?q=TOEFL+listening" class="btn btn-sm" style="background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border); border-radius: 20px;">TOEFL listening</a>
     </div>
   </div>
   {% endif %}
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
-}
+const csrfToken = '{{ csrf_token }}';
 
-function toggleSave(btn, pk) {
-  fetch(`/save/${pk}/`, {
-    method: 'POST',
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken'),
-      'Content-Type': 'application/json',
-    },
-  })
-  .then(r => r.json())
-  .then(data => {
-    const icon = btn.querySelector('i');
-    if (data.saved) {
-      icon.className = 'bi bi-heart-fill';
-      btn.style.color = 'var(--accent)';
-      btn.classList.add('saved');
-    } else {
-      icon.className = 'bi bi-heart';
-      btn.style.color = 'var(--text-muted)';
-      btn.classList.remove('saved');
+document.querySelectorAll('.save-btn').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const data = {
+      url: this.dataset.url,
+      title: this.dataset.title,
+      description: this.dataset.description,
+      source: this.dataset.source
+    };
+
+    try {
+      const response = await fetch('/save/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(data)
+      });
+      const result = await response.json();
+      if (result.saved) {
+        this.textContent = '❤️';
+        this.style.color = 'var(--accent)';
+      } else {
+        this.textContent = '🤍';
+        this.style.color = 'var(--text-muted)';
+      }
+    } catch(e) {
+      console.error('Save failed:', e);
     }
   });
-}
+});
 </script>
 {% endblock %}

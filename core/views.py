@@ -9,7 +9,6 @@ from django.utils.decorators import method_decorator
 
 from .models import ExamCategory, ExamResource, SavedResource, SearchLog
 from .forms import RegisterForm, ProfileEditForm
-from .ai_search import ai_search
 
 
 def home(request):
@@ -24,23 +23,21 @@ def home(request):
 def search(request):
     query = request.GET.get('q', '').strip()
     results = []
+
     if query:
-        resources_qs = ExamResource.objects.filter(is_active=True).select_related('category')
-        results = ai_search(query, resources_qs)
+        from .ai_search import live_search
+        results = live_search(query)
+
         SearchLog.objects.create(
             user=request.user if request.user.is_authenticated else None,
             query=query,
             results_count=len(results)
         )
-    saved_ids = set()
-    if request.user.is_authenticated:
-        saved_ids = set(
-            SavedResource.objects.filter(user=request.user).values_list('resource_id', flat=True)
-        )
+
     return render(request, 'core/search_results.html', {
         'query': query,
         'results': results,
-        'saved_ids': saved_ids,
+        'results_count': len(results),
     })
 
 
@@ -86,17 +83,59 @@ def saved_tests(request):
 
 
 @login_required
-@require_POST
-def save_resource(request, pk):
-    resource = get_object_or_404(ExamResource, pk=pk)
-    saved, created = SavedResource.objects.get_or_create(user=request.user, resource=resource)
-    if not created:
-        saved.delete()
-        is_saved = False
-    else:
-        is_saved = True
-    count = SavedResource.objects.filter(user=request.user).count()
-    return JsonResponse({'saved': is_saved, 'count': count})
+def save_resource(request, pk=None):
+    """Save a resource. pk=None means create from POST data (live search result)."""
+    if request.method == 'POST':
+        import json as json_lib
+        data = json_lib.loads(request.body)
+
+        if pk:
+            resource = get_object_or_404(ExamResource, pk=pk)
+        else:
+            url = data.get('url', '')
+            title = data.get('title', '')
+            description = data.get('description', '')
+            source_name = data.get('source', '')
+
+            if not url or not title:
+                return JsonResponse({'error': 'Missing data'}, status=400)
+
+            default_category, _ = ExamCategory.objects.get_or_create(
+                slug='general',
+                defaults={
+                    'name': 'General',
+                    'region': 'INTERNATIONAL',
+                    'description': 'General exam resources'
+                }
+            )
+
+            resource, created = ExamResource.objects.get_or_create(
+                url=url,
+                defaults={
+                    'title': title[:255],
+                    'category': default_category,
+                    'source_name': source_name[:100] if source_name else 'Web',
+                    'description': description[:1000] if description else '',
+                    'difficulty': 'MEDIUM',
+                    'exam_type': 'FULL_TEST',
+                    'subject': 'General',
+                    'is_free': True,
+                    'is_active': True,
+                }
+            )
+
+        saved_obj = SavedResource.objects.filter(user=request.user, resource=resource).first()
+        if saved_obj:
+            saved_obj.delete()
+            saved = False
+        else:
+            SavedResource.objects.create(user=request.user, resource=resource)
+            saved = True
+
+        count = SavedResource.objects.filter(user=request.user).count()
+        return JsonResponse({'saved': saved, 'count': count, 'resource_id': resource.pk})
+
+    return JsonResponse({'error': 'POST required'}, status=405)
 
 
 @login_required
