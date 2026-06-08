@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path 
 from . import views
 
 urlpatterns = [
@@ -13,3 +13,4 @@ urlpatterns = [
     path('notes/<int:pk>/', views.update_notes, name='update_notes'),
     path('profile/edit/', views.profile_edit, name='profile_edit'),
 ]
+ Her URL bir view'a bağlı. <int:pk> dinamik kısım, oraya gelen sayıyı view'a parametre olarak geçiyor. name= ile URL'lere isim verdim, HTML'de {% url 'home' %} diyerek kullandım, URL değişse bile HTML bozulmuyor."
