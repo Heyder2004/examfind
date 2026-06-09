@@ -55,8 +55,8 @@ class ExamResource(models.Model):
         return self.title
 
 
-class UserProfile(models.Model): /*Django'nun kendi User modeli var ama biz ona ekstra bilgi eklemek istedik. bio ve target_exam alanları bunun için. Bunu OneToOneField ile User'a bağladık — yani her kullanıcının tam olarak bir profili var.
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+class UserProfile(models.Model): /*Django'nun kendi User modeli var ama biz ona ekstra bilgi eklemek istedik. bio ve target_exam alanları bunun için.
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  Bunu OneToOneField ile User'a bağladık — yani her kullanıcının tam olarak bir profili var.
     bio = models.TextField(blank=True)
     target_exam = models.ForeignKey(ExamCategory, null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -77,7 +77,7 @@ def save_user_profile(sender, instance, **kwargs):
         instance.userprofile.save()
 
 
-class SavedResource(models.Model): Kullanıcı bir kaynağı kaydettiğinde buraya yazılıyor. notes alanına not ekleyebiliyor, is_completed ile tamamladım diyebiliyor. unique_together sayesinde aynı kaynağı iki kez kaydedemez
+class SavedResource(models.Model): Kullanıcı bir kaynağı kaydettiğinde buraya yazılıyor. notes alanına not ekleyebiliyor, is_completed ile tamamladım diyebiliyor. 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_resources')
     resource = models.ForeignKey(ExamResource, on_delete=models.CASCADE)
     saved_at = models.DateTimeField(auto_now_add=True)
@@ -85,7 +85,7 @@ class SavedResource(models.Model): Kullanıcı bir kaynağı kaydettiğinde bura
     is_completed = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('user', 'resource')
+        unique_together = ('user', 'resource')  unique_together sayesinde aynı kaynağı iki kez kaydedemez
         ordering = ['-saved_at']
 
     def __str__(self):
