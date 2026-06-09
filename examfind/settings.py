@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production') Gizli anahtar environment variable'dan okunuyor, kod içine yazmadım. Railway'de bu değeri ayrıca tanımladım.
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')  # Gizli anahtar environment variable'dan okunuyor, kod içine yazmadım. Railway'de bu değeri ayrıca tanımladım.
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['*']
@@ -71,12 +71,12 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@examfind.com'
 
-LOGIN_REDIRECT_URL = '/dashboard/' "Giriş yapınca dashboard'a, çıkış yapınca ana sayfaya gönderiyor."
+LOGIN_REDIRECT_URL = '/dashboard/'  # Giriş yapınca dashboard'a, çıkış yapınca ana sayfaya gönderiyor.
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login/'
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Europe/Istanbul'    Zaman dilimini İstanbul yaptım, yoksa UTC'de kaydediyordu
+TIME_ZONE = 'Europe/Istanbul'  # Zaman dilimini İstanbul yaptım, yoksa UTC'de kaydediyordu
 USE_I18N = True
 USE_TZ = True
 

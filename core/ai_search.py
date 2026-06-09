@@ -1,4 +1,4 @@
-import os "Bu projenin en önemli dosyası. Normal arama 'bu kelime var mı yok mu' diye bakar. Ben bunun yerine yapay zekaya soruyorum: 
+import os  # Bu projenin en önemli dosyası. Normal arama 'bu kelime var mı yok mu' diye bakar. Ben bunun yerine yapay zekaya soruyorum:
 import json
 from groq import Groq
 from ddgs import DDGS

@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
-class ExamCategory(models.Model): /*ExamCategory → Sınav kategorileri. SAT, IELTS, YKS gibi. Her kategorinin bir slug'ı var*/
+class ExamCategory(models.Model):  # ExamCategory → Sınav kategorileri. SAT, IELTS, YKS gibi. Her kategorinin bir slug'ı var
     REGION_CHOICES = [
         ('INTERNATIONAL', 'International'),
         ('TURKEY', 'Turkey'),
@@ -44,7 +44,7 @@ class ExamResource(models.Model):
     exam_type = models.CharField(max_length=20, choices=EXAM_TYPE_CHOICES)
     subject = models.CharField(max_length=100)
     is_free = models.BooleanField(default=True)
-    is_active = models.BooleanField(default=True) /* is_active alanı sayesinde bir kaynağı silmeden devre dışı bırakabiliyorum.*/
+    is_active = models.BooleanField(default=True)  # is_active alanı sayesinde bir kaynağı silmeden devre dışı bırakabiliyorum.
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -55,8 +55,8 @@ class ExamResource(models.Model):
         return self.title
 
 
-class UserProfile(models.Model): /*Django'nun kendi User modeli var ama biz ona ekstra bilgi eklemek istedik. bio ve target_exam alanları bunun için.
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  Bunu OneToOneField ile User'a bağladık — yani her kullanıcının tam olarak bir profili var.
+class UserProfile(models.Model):  # Django'nun kendi User modeli var ama biz ona ekstra bilgi eklemek istedik. bio ve target_exam alanları bunun için.
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Bunu OneToOneField ile User'a bağladık — yani her kullanıcının tam olarak bir profili var.
     bio = models.TextField(blank=True)
     target_exam = models.ForeignKey(ExamCategory, null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -66,7 +66,7 @@ class UserProfile(models.Model): /*Django'nun kendi User modeli var ama biz ona 
 
 
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs): /* "Biri kayıt olduğunda Django otomatik olarak bu fonksiyonu çalıştırıyor. Ben elle 'profil oluştur' yazmak zorunda kalmıyorum, otomatik oluyor."
+def create_user_profile(sender, instance, created, **kwargs):  # Biri kayıt olduğunda Django otomatik olarak bu fonksiyonu çalıştırıyor. Ben elle 'profil oluştur' yazmak zorunda kalmıyorum, otomatik oluyor.
     if created:
         UserProfile.objects.create(user=instance)
 
@@ -77,7 +77,7 @@ def save_user_profile(sender, instance, **kwargs):
         instance.userprofile.save()
 
 
-class SavedResource(models.Model): Kullanıcı bir kaynağı kaydettiğinde buraya yazılıyor. notes alanına not ekleyebiliyor, is_completed ile tamamladım diyebiliyor. 
+class SavedResource(models.Model):  # Kullanıcı bir kaynağı kaydettiğinde buraya yazılıyor. notes alanına not ekleyebiliyor, is_completed ile tamamladım diyebiliyor.
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_resources')
     resource = models.ForeignKey(ExamResource, on_delete=models.CASCADE)
     saved_at = models.DateTimeField(auto_now_add=True)
@@ -85,14 +85,14 @@ class SavedResource(models.Model): Kullanıcı bir kaynağı kaydettiğinde bura
     is_completed = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('user', 'resource')  unique_together sayesinde aynı kaynağı iki kez kaydedemez
+        unique_together = ('user', 'resource')  # unique_together sayesinde aynı kaynağı iki kez kaydedemez
         ordering = ['-saved_at']
 
     def __str__(self):
         return f'{self.user.username} - {self.resource.title}'
 
 
-class SearchLog(models.Model): Her arama buraya kaydediliyor. Kullanıcı giriş yapmamış olsa bile log tutuluyor, ondan null=True var.
+class SearchLog(models.Model):  # Her arama buraya kaydediliyor. Kullanıcı giriş yapmamış olsa bile log tutuluyor, ondan null=True var.
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     query = models.TextField()
     results_count = models.IntegerField(default=0)

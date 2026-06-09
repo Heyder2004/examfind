@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404, redirect /Django'da view, kullanıcı bir sayfaya girdiğinde çalışan fonksiyondur. Her URL'nin bir view'u var.
+from django.shortcuts import render, get_object_or_404, redirect  # Django'da view, kullanıcı bir sayfaya girdiğinde çalışan fonksiyondur. Her URL'nin bir view'u var.
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib import messages
@@ -11,7 +11,7 @@ from .models import ExamCategory, ExamResource, SavedResource, SearchLog
 from .forms import RegisterForm, ProfileEditForm
 
 
-def home(request): Ana sayfaya girilince tüm kategorileri ve son 6 kaynağı veritabanından çekip HTML'e gönderiyorum."
+def home(request):  # Ana sayfaya girilince tüm kategorileri ve son 6 kaynağı veritabanından çekip HTML'e gönderiyorum.
     categories = ExamCategory.objects.all()
     latest_resources = ExamResource.objects.filter(is_active=True).select_related('category')[:6]
     return render(request, 'core/home.html', {
@@ -20,7 +20,7 @@ def home(request): Ana sayfaya girilince tüm kategorileri ve son 6 kaynağı ve
     })
 
 
-def search(request):"Kullanıcı arama yaptığında URL şöyle oluyor: /search/?q=SAT. request.GET.get('q') ile o kelimeyi alıyorum, ai_search fonksiyonuna gönderiyorum, sonuçları SearchLog'a kaydediyorum, sayfayı render ediyorum."
+def search(request):  # Kullanıcı arama yaptığında URL şöyle oluyor: /search/?q=SAT. request.GET.get('q') ile o kelimeyi alıyorum, ai_search fonksiyonuna gönderiyorum, sonuçları SearchLog'a kaydediyorum, sayfayı render ediyorum.
     query = request.GET.get('q', '').strip()
     results = []
 
@@ -57,7 +57,7 @@ def resource_detail(request, pk):
 
 
 @login_required
-def dashboard(request):"Dashboard, kaydetme gibi işlemlere giriş yapmadan erişince otomatik login sayfasına atıyor. Bunu her view'a tek satırla ekliyorum
+def dashboard(request):  # Dashboard, kaydetme gibi işlemlere giriş yapmadan erişince otomatik login sayfasına atıyor. Bunu her view'a tek satırla ekliyorum
     saved_count = SavedResource.objects.filter(user=request.user).count()
     completed_count = SavedResource.objects.filter(user=request.user, is_completed=True).count()
     recent_searches = SearchLog.objects.filter(user=request.user)[:5]
@@ -83,7 +83,7 @@ def saved_tests(request):
 
 
 @login_required
-def save_resource(request, pk=None): kayıt varsa getir, yoksa oluştur' diyor. Eğer zaten kaydedilmişse siliyorum, yoksa ekliyorum.  Sayfa yenilenmeden çalışıyor çünkü JsonResponse döndürüyorum, JavaScript bunu yakalar."
+def save_resource(request, pk=None):  # 'kayıt varsa getir, yoksa oluştur' diyor. Eğer zaten kaydedilmişse siliyorum, yoksa ekliyorum. Sayfa yenilenmeden çalışıyor çünkü JsonResponse döndürüyorum, JavaScript bunu yakalar.
     """Save a resource. pk=None means create from POST data (live search result)."""
     if request.method == 'POST':
         import json as json_lib
@@ -170,7 +170,7 @@ def profile_edit(request):
     return render(request, 'core/profile_edit.html', {'form': form})
 
 
-class RegisterView(View): Kayıt sayfası class olarak yazıldı. GET isteği gelince formu gösteriyor, POST gelince formu kaydedip kullanıcıyı otomatik giriş yaptırıyor ve dashboard'a yönlendiriyor."
+class RegisterView(View):  # Kayıt sayfası class olarak yazıldı. GET isteği gelince formu gösteriyor, POST gelince formu kaydedip kullanıcıyı otomatik giriş yaptırıyor ve dashboard'a yönlendiriyor.
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('dashboard')
